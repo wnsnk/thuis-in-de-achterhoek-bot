@@ -20,15 +20,14 @@ password = os.getenv('THUIS_IN_DE_ACHTERHOEK_PASSWORD')
 driver = webdriver.Firefox()
 actions = ActionChains(driver)
 
-driver.get(URL)
-WebDriverWait(driver, 20).until(EC.element_to_be_clickable(
-    (By.CSS_SELECTOR, '#CybotCookiebotDialogBodyButtonDecline'))).click()
-WebDriverWait(driver, 20).until(EC.element_to_be_clickable(
-    (By.CSS_SELECTOR, '.login-plugin-container'))).click()
-time.sleep(1)
-
 
 def log_in():
+    driver.get(URL)
+    WebDriverWait(driver, 20).until(EC.element_to_be_clickable(
+        (By.CSS_SELECTOR, '#CybotCookiebotDialogBodyButtonDecline'))).click()
+    WebDriverWait(driver, 20).until(EC.element_to_be_clickable(
+        (By.CSS_SELECTOR, '.login-plugin-container'))).click()
+    time.sleep(1)
     username_entry = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.NAME, 'username')))
     username_entry.click()
@@ -40,6 +39,10 @@ def log_in():
     actions.send_keys(password)
     actions.send_keys(Keys.RETURN)
     actions.perform()
+
+
+def go_to_overview():
+    driver.get(f'{URL}mijn-omgeving/mijn-overzicht')
 
 
 def check_my_applications():
@@ -55,14 +58,27 @@ def check_my_applications():
     return len(responses)
 
 
+def get_eligble_listings():
+    '''Gets all available listings and removes results user already applied to.'''
+    driver.get(f'{URL}aanbod/te-huur')
+    get_extra_listings = WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, '.match-passendheid')))
+    get_extra_listings.click()
+    listings = driver.find_elements(By.CLASS_NAME, 'list-item')
+    for listing in listings:
+        if 'Gereageerd (mijn voorlopige positie' in listing.text:
+            listings.remove(listing)
+            print('ALREADY APPLIED!!')
+
+    print(f'Found {len(listings)} available listings')
+    return listings
+
+
 log_in()
 num_of_applications = check_my_applications()
 if num_of_applications < MAX_RESPONSES:
     can_respond = True
-
-
-while can_respond:
-    pass
+    eligble_listings = get_eligble_listings()
 
 
 time.sleep(10000)
