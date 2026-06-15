@@ -58,7 +58,7 @@ def check_my_applications():
     return len(responses)
 
 
-def get_eligble_listings():
+def get_eligible_listings():
     '''Gets all available listings and removes results user already applied to.'''
     driver.get(f'{URL}aanbod/te-huur')
     get_extra_listings = WebDriverWait(driver, 20).until(
@@ -78,7 +78,8 @@ log_in()
 num_of_applications = check_my_applications()
 if num_of_applications < MAX_RESPONSES:
     can_respond = True
-    eligble_listings = get_eligble_listings()
-
+    eligible_listings = get_eligible_listings()
+    # get urls from listing and apply
+    # update num of applications
 
 time.sleep(10000)
