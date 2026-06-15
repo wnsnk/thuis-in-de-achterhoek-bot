@@ -14,14 +14,13 @@ load_dotenv()
 
 URL = 'https://www.thuisindeachterhoek.nl/'
 MAX_RESPONSES = 3
+can_respond = False
 username = os.getenv('THUIS_IN_DE_ACHTERHOEK_USERNAME')
 password = os.getenv('THUIS_IN_DE_ACHTERHOEK_PASSWORD')
 driver = webdriver.Firefox()
 actions = ActionChains(driver)
 
 driver.get(URL)
-# driver.implicitly_wait(30)
-
 WebDriverWait(driver, 20).until(EC.element_to_be_clickable(
     (By.CSS_SELECTOR, '#CybotCookiebotDialogBodyButtonDecline'))).click()
 WebDriverWait(driver, 20).until(EC.element_to_be_clickable(
@@ -39,7 +38,6 @@ def log_in():
     password_entry = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.NAME, 'password'))).click()
     actions.send_keys(password)
-    # actions.perform()
     actions.send_keys(Keys.RETURN)
     actions.perform()
 
@@ -58,7 +56,13 @@ def check_my_applications():
 
 
 log_in()
-a = check_my_applications()
-print(a)
+num_of_applications = check_my_applications()
+if num_of_applications < MAX_RESPONSES:
+    can_respond = True
+
+
+while can_respond:
+    pass
+
 
 time.sleep(10000)
