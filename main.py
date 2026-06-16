@@ -1,11 +1,11 @@
+from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+# from selenium.webdriver.firefox.options import Options
+# from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 import time
 from dotenv import load_dotenv
 import os
@@ -60,7 +60,7 @@ def check_my_applications():
 
 def get_eligible_listings():
     '''Gets all available listings and removes results user already applied to.'''
-    driver.get(f'{URL}aanbod/te-huur')
+    driver.get(f'{URL}aanbod/te-huur#?gesorteerd-op=reactiedatum-')
     time.sleep(1)
     get_extra_listings = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, '.match-passendheid')))
@@ -71,10 +71,10 @@ def get_eligible_listings():
     available_listings = []
     for listing in listings:
         if 'Gereageerd' in listing.text:
-            print('ALREADY APPLIED!!')
+            continue
         else:
             available_listings.append(listing)
-    print(f'Found {len(available_listings)} available listings')
+    print(f'Found {len(available_listings)} available listings.')
     time.sleep(2)
     return available_listings
 
@@ -99,13 +99,34 @@ time.sleep(2)
 while num_of_applications < MAX_RESPONSES:
     eligible_listings = get_eligible_listings()
     print(eligible_listings[0].text)
-    eligible_listings[0].click()
-    # TODO Program sees extra listings (good) but doesn't click on them. returns TimeoutException
+    # program sometimes does not register clicking eligible_listings[0]. It will retry 6 times.
+    clicked = False
+    retries = 0
+    max_retries = 6
+    while not clicked:
+        eligible_listings[0].click()
+        time.sleep(1)
+        if driver.current_url == f'{URL}aanbod/te-huur#?gesorteerd-op=reactiedatum-':
+            print('did not click')
+            time.sleep(1)
+            retries += 1
+            print(f'Retries: {retries}/{max_retries}')
+            if retries == 3:
+                print('Trying to reload eligible listings.')
+                eligible_listings = get_eligible_listings()
+                print(eligible_listings[0].text)
+            if retries >= max_retries:
+                print('Something went wrong.')
+                # TODO Raise error?
+                quit()
+        else:
+            clicked = True
     print('Applying...')
 
     apply_for_listing()
     print('applied for listing!')
-    print(f'Current number of applications: {num_of_applications}')
+    print(
+        f'Current number of applications: {num_of_applications}/{MAX_RESPONSES}')
     print('----------------------------------------------------------------')
     time.sleep(1)
 print('No more applications left.')
@@ -116,5 +137,6 @@ print(f'Total applications: {recheck_applications}')
 
 if num_of_applications != recheck_applications:
     print('Something has gone wrong...')
+    # TODO Raise error?
 
 time.sleep(10000)
