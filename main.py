@@ -14,7 +14,6 @@ load_dotenv()
 
 URL = 'https://www.thuisindeachterhoek.nl/'
 MAX_RESPONSES = 3
-can_respond = False
 username = os.getenv('THUIS_IN_DE_ACHTERHOEK_USERNAME')
 password = os.getenv('THUIS_IN_DE_ACHTERHOEK_PASSWORD')
 driver = webdriver.Firefox()
@@ -35,7 +34,8 @@ def log_in():
     actions.send_keys(username)
     actions.perform()
     password_entry = WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.NAME, 'password'))).click()
+        EC.element_to_be_clickable((By.NAME, 'password')))
+    password_entry.click()
     actions.send_keys(password)
     actions.send_keys(Keys.RETURN)
     actions.perform()
@@ -61,18 +61,22 @@ def check_my_applications():
 def get_eligible_listings():
     '''Gets all available listings and removes results user already applied to.'''
     driver.get(f'{URL}aanbod/te-huur')
+    time.sleep(1)
     get_extra_listings = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, '.match-passendheid')))
     get_extra_listings.click()
+    time.sleep(1)
     listings = driver.find_elements(By.CLASS_NAME, 'list-item')
+    print(f'Total listings found: {len(listings)}')
+    available_listings = []
     for listing in listings:
         if 'Gereageerd' in listing.text:
-            listings.remove(listing)
             print('ALREADY APPLIED!!')
-
-    print(f'Found {len(listings)} available listings')
+        else:
+            available_listings.append(listing)
+    print(f'Found {len(available_listings)} available listings')
     time.sleep(2)
-    return listings
+    return available_listings
 
 
 def apply_for_listing():
@@ -93,17 +97,24 @@ print('logged in, checking applications...')
 num_of_applications = check_my_applications()
 time.sleep(2)
 while num_of_applications < MAX_RESPONSES:
-    can_respond = True
     eligible_listings = get_eligible_listings()
-    print(eligible_listings[0].text, '\n')
-    print('try applying...')
+    print(eligible_listings[0].text)
     eligible_listings[0].click()
+    # TODO Program sees extra listings (good) but doesn't click on them. returns TimeoutException
+    print('Applying...')
+
     apply_for_listing()
     print('applied for listing!')
     print(f'Current number of applications: {num_of_applications}')
-print('loop ended')
+    print('----------------------------------------------------------------')
+    time.sleep(1)
+print('No more applications left.')
+print(f'Total applications should be: {num_of_applications}')
+print('Checking...')
+recheck_applications = check_my_applications()
+print(f'Total applications: {recheck_applications}')
 
-total = check_my_applications()
-print(f'Total applications: {total}')
+if num_of_applications != recheck_applications:
+    print('Something has gone wrong...')
 
 time.sleep(10000)
