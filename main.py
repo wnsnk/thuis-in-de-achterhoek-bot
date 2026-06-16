@@ -39,6 +39,7 @@ def log_in():
     actions.send_keys(password)
     actions.send_keys(Keys.RETURN)
     actions.perform()
+    time.sleep(2)
 
 
 def go_to_overview():
@@ -47,9 +48,8 @@ def go_to_overview():
 
 def check_my_applications():
     '''Returns the num of current applications for houses.'''
-    my_applications_button = WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, 'ul.dashboard-menu:nth-child(3) > li:nth-child(2)')))
-    my_applications_button.click()
+    driver.get(
+        f'{URL}mijn-omgeving/woning-zoeken/mijn-reacties/advertenties-online')
     time.sleep(2)
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.CLASS_NAME, 'reactie')))
@@ -66,20 +66,44 @@ def get_eligible_listings():
     get_extra_listings.click()
     listings = driver.find_elements(By.CLASS_NAME, 'list-item')
     for listing in listings:
-        if 'Gereageerd (mijn voorlopige positie' in listing.text:
+        if 'Gereageerd' in listing.text:
             listings.remove(listing)
             print('ALREADY APPLIED!!')
 
     print(f'Found {len(listings)} available listings')
+    time.sleep(2)
     return listings
 
 
+def apply_for_listing():
+    global num_of_applications
+    scroll_to_respond_button = WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, 'li.ng-scope:nth-child(5)')))
+    scroll_to_respond_button.click()
+    respond_button = WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, '.reageer-button')))
+    # TODO: BUTTON FOR DELETEN APPLICATION HAS THE SAME CSS SELECTOR, CHECK IF 'Reageer' in button.text?
+    respond_button.click()
+    num_of_applications += 1
+    time.sleep(2)
+
+
 log_in()
+print('logged in, checking applications...')
 num_of_applications = check_my_applications()
-if num_of_applications < MAX_RESPONSES:
+time.sleep(2)
+while num_of_applications < MAX_RESPONSES:
     can_respond = True
     eligible_listings = get_eligible_listings()
-    # get urls from listing and apply
-    # update num of applications
+    print(eligible_listings[0].text, '\n')
+    print('try applying...')
+    eligible_listings[0].click()
+    apply_for_listing()
+    print('applied for listing!')
+    print(f'Current number of applications: {num_of_applications}')
+print('loop ended')
+
+total = check_my_applications()
+print(f'Total applications: {total}')
 
 time.sleep(10000)
