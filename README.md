@@ -5,12 +5,12 @@ A bot made with selenium that automates applying for housing via Thuis In De Ach
 ## Status:
 - Log in ✔️
 - Check current amount of outgoing applications (max 3) ✔️
-## TODO:
 - If outgoing applications < 3:
     - Check listings for not yet applied housing ✔️
-    - Submit Applications
+    - Submit Applications ✔️
+## TODO:
 - Add Error handling
-- Sort listings by deadline
+- Remove unnecessary time.sleeps
 - Test program with different browsers
 
 ## Installation
