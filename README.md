@@ -1,4 +1,4 @@
-# ThuisindeachterhoekBot (Work in Progress)
+# thuis-in-de-achterhoek-bot (Work in Progress)
 
 ## Description
 A bot made with selenium that automates applying for housing via Thuis In De Achterhoek. (This project is still in the early stages)
