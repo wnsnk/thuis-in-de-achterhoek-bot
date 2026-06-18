@@ -9,7 +9,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 from dotenv import load_dotenv
 import os
-
+from modules.exceptions import MaxRetryError, ExpectedResultDoesNotMatchError, AlreadyRespondedToListingError
 load_dotenv()
 
 URL = 'https://www.thuisindeachterhoek.nl/'
@@ -75,29 +75,45 @@ def get_eligible_listings():
         else:
             available_listings.append(listing)
     print(f'Found {len(available_listings)} available listings.')
-    time.sleep(2)
-    return available_listings
+    if len(available_listings) != 0:
+        return available_listings
+    else:
+        # TODO Find a good way to retry this
+        get_eligible_listings()
+        time.sleep(1)
 
 
 def apply_for_listing():
     global num_of_applications
+    print('Applying...')
     scroll_to_respond_button = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, 'li.ng-scope:nth-child(5)')))
     scroll_to_respond_button.click()
     respond_button = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, '.reageer-button')))
-    # TODO: BUTTON FOR DELETEN APPLICATION HAS THE SAME CSS SELECTOR, CHECK IF 'Reageer' in button.text?
-    respond_button.click()
-    num_of_applications += 1
-    time.sleep(2)
+    # Button for removing application has the same CSS Selector.
+    # This piece of code makes sure it doesn't accidentally remove your application.
+    if respond_button.get_attribute('value') == 'Reageer':
+        respond_button.click()
+        num_of_applications += 1
+        time.sleep(2)
+        print('applied for listing!')
+    else:
+        raise AlreadyRespondedToListingError(
+            'Already responded to this listing.')
+
+# TODO Write retry function?
 
 
 log_in()
 print('logged in, checking applications...')
 num_of_applications = check_my_applications()
+print(
+    f'Current number of applications: {num_of_applications}/{MAX_RESPONSES}')
 time.sleep(2)
 while num_of_applications < MAX_RESPONSES:
     eligible_listings = get_eligible_listings()
+
     print(eligible_listings[0].text)
     # program sometimes does not register clicking eligible_listings[0]. It will retry 6 times.
     clicked = False
@@ -105,7 +121,7 @@ while num_of_applications < MAX_RESPONSES:
     max_retries = 6
     while not clicked:
         eligible_listings[0].click()
-        time.sleep(1)
+        time.sleep(3)
         if driver.current_url == f'{URL}aanbod/te-huur#?gesorteerd-op=reactiedatum-':
             print('did not click')
             time.sleep(1)
@@ -114,17 +130,16 @@ while num_of_applications < MAX_RESPONSES:
             if retries == 3:
                 print('Trying to reload eligible listings.')
                 eligible_listings = get_eligible_listings()
+                time.sleep(3)
                 print(eligible_listings[0].text)
             if retries >= max_retries:
                 print('Something went wrong.')
-                # TODO Raise error?
-                quit()
+                raise MaxRetryError(f'Program failed after {retries} retries')
+
         else:
             clicked = True
-    print('Applying...')
 
     apply_for_listing()
-    print('applied for listing!')
     print(
         f'Current number of applications: {num_of_applications}/{MAX_RESPONSES}')
     print('----------------------------------------------------------------')
@@ -136,7 +151,8 @@ recheck_applications = check_my_applications()
 print(f'Total applications: {recheck_applications}')
 
 if num_of_applications != recheck_applications:
-    print('Something has gone wrong...')
-    # TODO Raise error?
+    raise ExpectedResultDoesNotMatchError(
+        'Something has gone wrong. Please check applications manually.')
+
 
 time.sleep(10000)
