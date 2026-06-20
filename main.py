@@ -113,7 +113,9 @@ print(
 time.sleep(2)
 while num_of_applications < MAX_RESPONSES:
     eligible_listings = get_eligible_listings()
-
+    driver.execute_script(
+        # This seems to work, test if retrying is still necessary
+        'arguments[0].scrollIntoView();', eligible_listings[0])
     print(eligible_listings[0].text)
     # program sometimes does not register clicking eligible_listings[0]. It will retry 6 times.
     clicked = False
@@ -135,7 +137,6 @@ while num_of_applications < MAX_RESPONSES:
             if retries >= max_retries:
                 print('Something went wrong.')
                 raise MaxRetryError(f'Program failed after {retries} retries')
-
         else:
             clicked = True
 
