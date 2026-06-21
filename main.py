@@ -77,10 +77,12 @@ def get_eligible_listings():
     print(f'Found {len(available_listings)} available listings.')
     if len(available_listings) != 0:
         return available_listings
+    # returns TypeError after retrying
     else:
         # TODO Find a good way to retry this
-        get_eligible_listings()
+        available_listings = get_eligible_listings()
         time.sleep(1)
+        return available_listings
 
 
 def apply_for_listing():
