@@ -60,6 +60,8 @@ def check_my_applications():
 
 def get_eligible_listings():
     '''Gets all available listings and removes results user already applied to.'''
+    global retries
+    max_retries = 3
     driver.get(f'{URL}aanbod/te-huur#?gesorteerd-op=reactiedatum-')
     time.sleep(1)
     get_extra_listings = WebDriverWait(driver, 20).until(
@@ -79,10 +81,16 @@ def get_eligible_listings():
         return available_listings
     # returns TypeError after retrying
     else:
-        # TODO Find a good way to retry this
-        available_listings = get_eligible_listings()
-        time.sleep(1)
-        return available_listings
+        retries += 1
+        if retries <= max_retries:
+            print(
+                f'Making sure there are no listings left...\nRetrying: {retries}/{max_retries}')
+            available_listings = get_eligible_listings()
+            time.sleep(1)
+            return available_listings
+        else:
+            print('No more eligible listings left')
+            return None
 
 
 def apply_for_listing():
@@ -114,39 +122,45 @@ print(
     f'Current number of applications: {num_of_applications}/{MAX_RESPONSES}')
 time.sleep(2)
 while num_of_applications < MAX_RESPONSES:
-    eligible_listings = get_eligible_listings()
-    driver.execute_script(
-        # This seems to work, test if retrying is still necessary
-        'arguments[0].scrollIntoView();', eligible_listings[0])
-    print(eligible_listings[0].text)
-    # program sometimes does not register clicking eligible_listings[0]. It will retry 6 times.
-    clicked = False
     retries = 0
-    max_retries = 6
-    while not clicked:
-        eligible_listings[0].click()
-        time.sleep(3)
-        if driver.current_url == f'{URL}aanbod/te-huur#?gesorteerd-op=reactiedatum-':
-            print('did not click')
-            time.sleep(1)
-            retries += 1
-            print(f'Retries: {retries}/{max_retries}')
-            if retries == 3:
-                print('Trying to reload eligible listings.')
-                eligible_listings = get_eligible_listings()
-                time.sleep(3)
-                print(eligible_listings[0].text)
-            if retries >= max_retries:
-                print('Something went wrong.')
-                raise MaxRetryError(f'Program failed after {retries} retries')
-        else:
-            clicked = True
+    eligible_listings = get_eligible_listings()
+    if eligible_listings:
+        driver.execute_script(
+            # This seems to work, test if retrying is still necessary
+            'arguments[0].scrollIntoView();', eligible_listings[0])
+        print(eligible_listings[0].text)
+        # program sometimes does not register clicking eligible_listings[0].
+        # Probably fixed with scrollIntoView() but need to test this a little more..
+        clicked = False
+        retries = 0
+        max_retries = 6
+        while not clicked:
+            eligible_listings[0].click()
+            time.sleep(3)
+            if driver.current_url == f'{URL}aanbod/te-huur#?gesorteerd-op=reactiedatum-':
+                print('did not click')
+                time.sleep(1)
+                retries += 1
+                print(f'Retries: {retries}/{max_retries}')
+                if retries == 3:
+                    print('Trying to reload eligible listings.')
+                    eligible_listings = get_eligible_listings()
+                    time.sleep(3)
+                    print(eligible_listings[0].text)
+                if retries >= max_retries:
+                    print('Something went wrong.')
+                    raise MaxRetryError(
+                        f'Program failed after {retries} retries')
+            else:
+                clicked = True
 
-    apply_for_listing()
-    print(
-        f'Current number of applications: {num_of_applications}/{MAX_RESPONSES}')
-    print('----------------------------------------------------------------')
-    time.sleep(1)
+        apply_for_listing()
+        print(
+            f'Current number of applications: {num_of_applications}/{MAX_RESPONSES}')
+        print('----------------------------------------------------------------')
+        time.sleep(1)
+    else:
+        break
 print('No more applications left.')
 print(f'Total applications should be: {num_of_applications}')
 print('Checking...')
