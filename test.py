@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import os
 from modules.exceptions import MaxRetryError, ExpectedResultDoesNotMatchError, AlreadyRespondedToListingError
 from modules.listing_details import listingDetails
-from modules.filters import load_filters
+from modules.filters import load_filters, check_listing
 
 URL = 'https://www.thuisindeachterhoek.nl/'
 driver = webdriver.Firefox()
@@ -35,10 +35,14 @@ def get_eligible_listings():
     listings = driver.find_elements(By.CLASS_NAME, 'list-item')
     print(f'Total listings found: {len(listings)}')
     available_listings = []
+
     for listing in listings:
         listingHTML = listing.get_attribute('outerHTML')
         listing_details = listingDetails(listingHTML=listingHTML)
-        # print(listingHTML, '\n' * 5)
+        check_listing_with_filters = check_listing(
+            listing_details=listing_details)
+        print(check_listing_with_filters)
+
         if 'Gereageerd' in listing.text:
             continue
         else:
@@ -60,4 +64,4 @@ def get_eligible_listings():
             return None
 
 
-# get_eligible_listings()
+get_eligible_listings()
