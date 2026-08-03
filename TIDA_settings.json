@@ -1,0 +1,12 @@
+
+{
+    "EXAMPLE": "EXAMPLE", 
+    "sort_by": ["price low-high", "price high-low"],
+    "max_price_per_month": 1000,
+    "min_m2": 45,
+    "min_bedrooms": 2,
+    "elderly_home": false,
+    "assignment": ""
+
+
+}
