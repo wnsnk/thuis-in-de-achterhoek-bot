@@ -1,0 +1,11 @@
+{  
+  "comment_": "Please check the README.md file for a detailed explanation of the filters",
+  "sort_by": "respond time",
+  "max_price_per_month": 10000,
+  "min_m2": 1,
+  "min_bedrooms": 0,
+  "elderly_home": false,
+  "listing_type": ["registration time", "lottery", "first to respond"],
+  "city_blacklist": [],
+  "only_ground_floor_or_elevator": false
+}
