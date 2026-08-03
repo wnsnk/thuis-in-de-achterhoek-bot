@@ -11,7 +11,7 @@ A bot made with selenium that automates applying for housing via Thuis In De Ach
 - If outgoing applications < 3:
   - Check listings for not yet applied housing ✔️
   - Submit Applications ✔️
-- Filter appartments based on your preference ✔️
+- Filter appartments based on your preferences ✔️
 - Add Error handling ✔️
 
 ## TODO:
@@ -38,7 +38,7 @@ pip install -r requirements.txt
 
 - Make sure you have installed Firefox (Future versions might support other browsers)
 
-### Add your e-mail and password to a .env file.
+### Add your username and password to a .env file.
 
 1. Make a copy of .env.example and name it .env
 2. add your thuis in de achterhoek username and password in the .env file
@@ -91,7 +91,7 @@ The minimum square meters (m2) the house should have.
 
 #### min_bedrooms (integer)
 
-The minimun bedrooms the house should have
+The minimum bedrooms the house should have
 
 #### elderly_home (boolean)
 
