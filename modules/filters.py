@@ -1,5 +1,6 @@
 import json
 from .listing_details import listingDetails
+from .exceptions import NoTanslationError
 
 
 def load_filters():
@@ -8,8 +9,11 @@ def load_filters():
         return filters
 
 
+filters = load_filters()
+
+
 def sort_by():
-    sort_by = load_filters()['sort_by']
+    sort_by = filters['sort_by']
     sort_by_dict = {'price low-high': '#?gesorteerd-op=prijs%2B',
                     'price high-low': '#?gesorteerd-op=prijs-',
                     'city a-z': '#?gesorteerd-op=plaats%2B',
@@ -24,29 +28,43 @@ def sort_by():
 
 
 def check_listing(listing_details: listingDetails):
-    filters = load_filters()
-
     if listing_details.price > filters['max_price_per_month']:
         return False
-    elif listing_details.m2 < filters['min_m2']:
+    if listing_details.m2 < filters['min_m2']:
         return False
-    elif listing_details.bedrooms < filters['min_bedrooms']:
+    if listing_details.bedrooms < filters['min_bedrooms']:
         return False
-    elif listing_details.listing_type not in filters['listing_type']:
-        return False
-    elif filters['city_blacklist']:
+    if listing_details.listing_type:
+        translated_listing_types = translate_listing_type()
+        if listing_details.listing_type not in translated_listing_types:
+            return False
+    if filters['city_blacklist']:
         for city in filters['city_blacklist']:
             if listing_details.city.lower() == city.lower():
-                print('check city blacklist')
                 return False
-    elif filters['only_ground_floor_or_elevator']:
-        print('check floor')
+    if filters['only_ground_floor_or_elevator']:
         if listing_details.floor.lower() == 'begane grond':
             return True
         elif 'met lift' in listing_details.house_type:
             return True
         else:
             return False
+
     # TODO: Add elderly home
     else:
         return True
+
+
+def translate_listing_type():
+    listing_type_english = filters['listing_type']
+    listing_type_dutch = []
+    for listing_type in listing_type_english:
+        if listing_type.lower() == 'registration time':
+            listing_type_dutch.append('Inschrijfduur')
+        elif listing_type.lower() == 'lottery':
+            listing_type_dutch.append('Loting')
+        # elif listing_type.lower() == 'first to respond':
+        #     # TODO: This listing type almost never happens. So i don't know yet what the translation should be.
+        #     raise NoTanslationError(
+        #         'No translation for this listing type. Please create a issue on the github repository. https://github.com/wnsnk/thuis-in-de-achterhoek-bot')
+    return listing_type_dutch

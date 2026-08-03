@@ -11,3 +11,8 @@ class ExpectedResultDoesNotMatchError(Exception):
 class AlreadyRespondedToListingError(Exception):
     def __init__(self, *args):
         super().__init__(*args)
+
+
+class NoTanslationError(Exception):
+    def __init__(self, *args):
+        super().__init__(*args)
