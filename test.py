@@ -11,20 +11,18 @@ from dotenv import load_dotenv
 import os
 from modules.exceptions import MaxRetryError, ExpectedResultDoesNotMatchError, AlreadyRespondedToListingError
 from modules.listing_details import listingDetails
-from modules.filters import load_filters, check_listing
+from modules.filters import sort_by, check_listing
 
 URL = 'https://www.thuisindeachterhoek.nl/'
 driver = webdriver.Firefox()
 actions = ActionChains(driver)
-
-filters = load_filters()
 
 
 def get_eligible_listings():
     '''Gets all available listings and removes results user already applied to.'''
     global retries
     max_retries = 3
-    driver.get(f'{URL}aanbod/te-huur#?gesorteerd-op=reactiedatum-')
+    driver.get(f'{URL}aanbod/te-huur{sort_by()}')
     time.sleep(1)
     WebDriverWait(driver, 20).until(EC.element_to_be_clickable(
         (By.CSS_SELECTOR, '#CybotCookiebotDialogBodyButtonDecline'))).click()
@@ -39,11 +37,13 @@ def get_eligible_listings():
     for listing in listings:
         listingHTML = listing.get_attribute('outerHTML')
         listing_details = listingDetails(listingHTML=listingHTML)
-        check_listing_with_filters = check_listing(
+        filter_check = check_listing(
             listing_details=listing_details)
-        print(check_listing_with_filters)
-
-        if 'Gereageerd' in listing.text:
+        if not filter_check:
+            print('Listing removed from eligible listings: Removed by filters.')
+            continue
+        elif 'Gereageerd' in listing.text:
+            print('Listing removed from eligible listings: Already responded to listing.')
             continue
         else:
             available_listings.append(listing)
