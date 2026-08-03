@@ -7,12 +7,17 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 import time
 from dotenv import load_dotenv
+
 import os
 from modules.exceptions import MaxRetryError, ExpectedResultDoesNotMatchError, AlreadyRespondedToListingError
-from listing_details import listingDetails
+from modules.listing_details import listingDetails
+from modules.filters import load_filters
+
 URL = 'https://www.thuisindeachterhoek.nl/'
 driver = webdriver.Firefox()
 actions = ActionChains(driver)
+
+filters = load_filters()
 
 
 def get_eligible_listings():
@@ -55,4 +60,4 @@ def get_eligible_listings():
             return None
 
 
-get_eligible_listings()
+# get_eligible_listings()
