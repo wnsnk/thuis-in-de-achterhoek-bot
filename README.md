@@ -68,11 +68,18 @@ The standard filters will not remove anything.
 
 This tells the program what listings to check first.
 
-- Options:
+Options:
 
-```
-'price low-high', 'price high-low', 'city a-z', 'city z-a','neighborhood a-z', 'neighborhood z-a', 'house type a-z', 'house type z-a', 'respond time', 'newest'
-```
+- `'price low-high'`
+- `'price high-low'`
+- `'city a-z' `
+- `'city z-a'`
+- `'neighborhood a-z'`
+- `'neighborhood z-a'`
+- `'house type a-z'`
+- `'house type z-a'`
+- `'respond time'`
+- `'newest'`
 
 #### max_price_per_month (integer)
 
