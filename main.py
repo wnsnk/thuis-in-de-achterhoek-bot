@@ -138,6 +138,7 @@ while num_of_applications < MAX_RESPONSES:
         driver.execute_script(
             'arguments[0].scrollIntoView();', eligible_listings[0])
         print(eligible_listings[0].text)
+        eligible_listings[0].click()
         apply_for_listing()
         print(
             f'Current number of applications: {num_of_applications}/{MAX_RESPONSES}')
