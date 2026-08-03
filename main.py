@@ -9,6 +9,9 @@ import time
 from dotenv import load_dotenv
 import os
 from modules.exceptions import MaxRetryError, ExpectedResultDoesNotMatchError, AlreadyRespondedToListingError
+from modules.listing_details import listingDetails
+from modules.filters import sort_by, check_listing
+
 load_dotenv()
 
 URL = 'https://www.thuisindeachterhoek.nl/'
@@ -61,8 +64,9 @@ def get_eligible_listings():
     '''Gets all available listings and removes results user already applied to.'''
     global retries
     max_retries = 3
-    driver.get(f'{URL}aanbod/te-huur#?gesorteerd-op=reactiedatum-')
+    driver.get(f'{URL}aanbod/te-huur{sort_by()}')
     time.sleep(1)
+
     get_extra_listings = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, '.match-passendheid')))
     get_extra_listings.click()
@@ -70,8 +74,17 @@ def get_eligible_listings():
     listings = driver.find_elements(By.CLASS_NAME, 'list-item')
     print(f'Total listings found: {len(listings)}')
     available_listings = []
+
     for listing in listings:
-        if 'Gereageerd' in listing.text:
+        listingHTML = listing.get_attribute('outerHTML')
+        listing_details = listingDetails(listingHTML=listingHTML)
+        filter_check = check_listing(
+            listing_details=listing_details)
+        if not filter_check:
+            print('Listing removed from eligible listings: Removed by filters.')
+            continue
+        elif 'Gereageerd' in listing.text:
+            print('Listing removed from eligible listings: Already responded to listing.')
             continue
         else:
             available_listings.append(listing)
